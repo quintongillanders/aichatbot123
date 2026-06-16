@@ -71,3 +71,8 @@
   color: white;
   cursor: pointer;
 }
+
+.typing {
+    opacity: 0.7;
+    font-style: italic;
+}

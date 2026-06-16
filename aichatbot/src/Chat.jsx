@@ -4,14 +4,14 @@ import "./Chat.css";
 export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false); // 🤖 NEW
 
   const messagesEndRef = useRef(null);
 
-  // ✅ SEND MESSAGE + FAKE AI RESPONSE
   const sendMessage = () => {
     if (!input.trim()) return;
 
-    const userText = input; // store before clearing
+    const userText = input;
 
     const userMessage = {
       id: Date.now(),
@@ -22,7 +22,9 @@ export default function Chat() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    // 🤖 FAKE AI RESPONSE (NEW PART)
+    // 🤖 SHOW TYPING INDICATOR (NEW)
+    setIsTyping(true);
+
     setTimeout(() => {
       const botMessage = {
         id: Date.now() + 1,
@@ -31,31 +33,31 @@ export default function Chat() {
       };
 
       setMessages((prev) => [...prev, botMessage]);
-    }, 800);
+      setIsTyping(false); // stop typing
+    }, 1000);
   };
 
-  // 🤖 FAKE AI BRAIN (NEW PART)
+  // 🤖 FAKE AI BRAIN
   const getFakeReply = (message) => {
     const msg = message.toLowerCase();
 
     if (msg.includes("hello")) return "Hey! 👋 How can I help you?";
-    if (msg.includes("how are you")) return "I'm good 😄 just running in React!";
+    if (msg.includes("how are you")) return "I'm doing great 😄 running inside React!";
     if (msg.includes("name")) return "I'm your simple AI chatbot 🤖";
     if (msg.includes("bye")) return "Goodbye! 👋";
 
-    return "Hmm 🤔 I'm still learning. Try something else!";
+    return "Hmm 🤔 I'm still learning!";
   };
 
-  // 🔽 AUTO SCROLL (KEEP THIS)
+  // auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   return (
     <div className="chat">
       <div className="chat-box">
 
-        {/* MESSAGES */}
         <div className="messages">
           {messages.map((msg) => (
             <div key={msg.id} className={`message ${msg.role}`}>
@@ -63,10 +65,16 @@ export default function Chat() {
             </div>
           ))}
 
+          {/* 🤖 TYPING INDICATOR (NEW) */}
+          {isTyping && (
+            <div className="message bot typing">
+              AI is typing...
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
-        {/* INPUT */}
         <div className="inputBar">
           <input
             value={input}
