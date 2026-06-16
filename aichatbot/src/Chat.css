@@ -6,10 +6,11 @@
   align-items: center;
 }
 
-/* the actual chat box */
 .chat-box {
   width: 900px;
-  height: 600px;
+  max-width: 95vw;
+  height: 700px;
+  max-height: 85vh;
   background: #1a1a1a;
   border: 1px solid #333;
   border-radius: 16px;
@@ -18,7 +19,6 @@
   overflow: hidden;
 }
 
-/* messages area */
 .messages {
   flex: 1;
   padding: 16px;
@@ -28,7 +28,6 @@
   gap: 10px;
 }
 
-/* message bubbles */
 .message {
   padding: 10px 12px;
   border-radius: 10px;
@@ -36,20 +35,16 @@
   word-wrap: break-word;
 }
 
-/* user message */
 .message.user {
   background: #4f46e5;
   align-self: flex-end;
-  color: white;
 }
 
-/* bot message */
 .message.bot {
   background: #2a2a2a;
   align-self: flex-start;
 }
 
-/* input area */
 .inputBar {
   display: flex;
   padding: 12px;
