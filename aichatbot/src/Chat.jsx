@@ -68,7 +68,9 @@ export default function Chat() {
           {/* 🤖 TYPING INDICATOR (NEW) */}
           {isTyping && (
             <div className="message bot typing">
-              AI is typing...
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="dot"></span>
             </div>
           )}
 
