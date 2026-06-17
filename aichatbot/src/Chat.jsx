@@ -4,52 +4,111 @@ import "./Chat.css";
 export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false); // 🤖 NEW
+  const [isTyping, setIsTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
+  // 🌐 WEB SEARCH (basic internet knowledge)
+  const searchWeb = async (query) => {
+    try {
+      const res = await fetch(
+        `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`
+      );
 
-    const userText = input;
+      const data = await res.json();
+
+      return (
+        data?.AbstractText ||
+        data?.RelatedTopics?.[0]?.Text ||
+        ""
+      );
+    } catch (err) {
+      return "";
+    }
+  };
+
+  // 🤖 AI CHAT (GROQ + web knowledge)
+  const getAIResponse = async (chatMessages) => {
+    const lastMessage =
+      chatMessages[chatMessages.length - 1]?.content || "";
+
+    const webInfo = await searchWeb(lastMessage);
+
+    const res = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a helpful AI assistant. Use web info when provided and explain things clearly in a natural, friendly way. Respond to questions accordingly and keep things short and relaxed.",
+            },
+            {
+              role: "system",
+              content: `Web context (use if helpful): ${webInfo || "No web info found"}`,
+            },
+            ...chatMessages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+          ],
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    return data?.choices?.[0]?.message?.content || "No response";
+  };
+
+  // 💬 SEND MESSAGE
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
     const userMessage = {
       id: Date.now(),
-      text: userText,
       role: "user",
+      content: input,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    const updatedMessages = [...messages, userMessage];
 
-    // 🤖 SHOW TYPING INDICATOR (NEW)
+    setMessages(updatedMessages);
+    setInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const botReply = await getAIResponse(updatedMessages);
+
       const botMessage = {
         id: Date.now() + 1,
-        text: getFakeReply(userText),
-        role: "bot",
+        role: "assistant",
+        content: botReply,
       };
 
       setMessages((prev) => [...prev, botMessage]);
-      setIsTyping(false); // stop typing
-    }, 1000);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          content: "Error connecting to AI 😢",
+        },
+      ]);
+    }
+
+    setIsTyping(false);
   };
 
-  // 🤖 FAKE AI BRAIN
-  const getFakeReply = (message) => {
-    const msg = message.toLowerCase();
-
-    if (msg.includes("hello")) return "Hey! 👋 How can I help you?";
-    if (msg.includes("how are you")) return "I'm doing great 😄 running inside React!";
-    if (msg.includes("name")) return "I'm your simple AI chatbot 🤖";
-    if (msg.includes("bye")) return "Goodbye! 👋";
-
-    return "Hmm 🤔 I'm still learning!";
-  };
-
-  // auto scroll
+  // 🔽 AUTO SCROLL
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -61,13 +120,12 @@ export default function Chat() {
         <div className="messages">
           {messages.map((msg) => (
             <div key={msg.id} className={`message ${msg.role}`}>
-              {msg.text}
+              {msg.content}
             </div>
           ))}
 
-          {/* 🤖 TYPING INDICATOR (NEW) */}
           {isTyping && (
-            <div className="message bot typing">
+            <div className="message assistant typing">
               <span className="dot"></span>
               <span className="dot"></span>
               <span className="dot"></span>
@@ -82,9 +140,7 @@ export default function Chat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter") sendMessage();
-            }}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
 
           <button onClick={sendMessage}>Send</button>
