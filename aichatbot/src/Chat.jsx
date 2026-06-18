@@ -119,11 +119,17 @@ export default function Chat() {
 
         <div className="messages">
           {messages.map((msg) => (
-            <div key={msg.id} className={`message ${msg.role}`}>
-              {msg.content}
+            <div
+              key={msg.id}
+              className={`message ${
+                msg.role === "user" ? "user" : "bot"
+              }`}
+            >
+              <div className="bubble">
+                {msg.content}
+              </div>
             </div>
           ))}
-
           {isTyping && (
             <div className="message assistant typing">
               <span className="dot"></span>

@@ -17,3 +17,45 @@ h1 {
   justify-content: center;
   align-items: center;
 }
+
+.app {
+  min-height: 100vh;
+  background: #0d0d0d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chat-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.footer {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #aaa;
+}
+
+.footer p {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.socials {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.socials a {
+  color: white;
+  transition: 0.2s;
+}
+
+.socials a:hover {
+  color: #4f46e5;
+  transform: scale(1.1);
+}
