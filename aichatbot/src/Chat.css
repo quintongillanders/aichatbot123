@@ -181,3 +181,18 @@
   background: #2f6fff;
   color: white;
 }
+
+.message.system {
+  display: flex;
+  justify-content: center;
+}
+
+.message.system .bubble {
+  background: rgba(255, 255, 255, 0.06);
+  color: #aaa;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 8px 0;
+}

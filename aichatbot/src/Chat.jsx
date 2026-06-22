@@ -11,6 +11,16 @@ export default function Chat() {
 
   const messagesEndRef = useRef(null);
 
+  const addSystemMessage = (text) => {
+  const msg = {
+    id: Date.now(),
+    role: "system",
+    content: text,
+  };
+
+  setMessages((prev) => [...prev, msg]);
+};
+
   const delay = (ms) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -111,7 +121,7 @@ export default function Chat() {
             if (personality === "roast") {
               return steps.map((s, i) => {
                 if (i === steps.length - 1) return "✓ Done (try not to regret asking this)";
-                if (s.includes("Writing")) return "✓ Writing reply (try not to cringe)";
+                if (s.includes("Writing")) return "✓ Writing reply";
                 return s;
               });
             }
@@ -286,12 +296,15 @@ export default function Chat() {
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`message ${
-                msg.role === "user"
-                  ? "user"
-                  : "bot"
-              }`}
+             className={`message ${
+              msg.role === "user"
+                ? "user"
+                : msg.role === "system"
+                ? "system"
+                : "bot"
+            }`}
             >
+            
               <div className="bubble">
                 {msg.content}
               </div>
@@ -342,6 +355,8 @@ export default function Chat() {
                   onClick={() => {
                     setPersonality("friendly");
                     setDropdownOpen(false);
+
+                    addSystemMessage("Switched to Friendly mode!")
                   }}
                 >
                   Friendly
@@ -352,6 +367,8 @@ export default function Chat() {
                   onClick={() => {
                     setPersonality("roast");
                     setDropdownOpen(false);
+
+                    addSystemMessage("Switched to Roast mode!")
                   }}
                 >
                   Roast
@@ -362,13 +379,15 @@ export default function Chat() {
                   onClick={() => {
                     setPersonality("professional");
                     setDropdownOpen(false);
+
+                    addSystemMessage("Switched to Professional Mode!")
                   }}
                 >
                   Professional
                 </button>
               </div>
             )}
-</div>
+            </div>
 
           <button onClick={sendMessage}>
             Send
