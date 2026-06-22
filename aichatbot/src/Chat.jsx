@@ -6,6 +6,8 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [thinkingText, setThinkingText] = useState("");
+  const [personality, setPersonality] = useState("friendly");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -15,22 +17,17 @@ export default function Chat() {
       const randomDelay = (min, max) =>
         Math.floor(Math.random() * (max - min + 1)) + min;
 
-      const getThinkingSteps = (message) => {
+      const getThinkingSteps = (message, personality) => {
         const text = message.toLowerCase().trim();
 
-        // Greetings
+        // ===== GREETINGS =====
         if (
           ["hi", "hello", "hey", "yo", "sup", "good morning", "good afternoon"].includes(text)
         ) {
-          return [
-            "✓ Detecting greeting...",
-            "✓ Choosing friendly response...",
-            "✓ Writing reply...",
-            "✓ Done"
-          ];
+          return getBaseSteps(personality, "greeting");
         }
 
-        // Programming
+        // ===== PROGRAMMING =====
         if (
           text.includes("code") ||
           text.includes("react") ||
@@ -39,62 +36,109 @@ export default function Chat() {
           text.includes("css") ||
           text.includes("bug")
         ) {
-          return [
-            "✓ Reading code...",
-            "✓ Looking for issues...",
-            "✓ Generating solution...",
-            "✓ Writing explanation...",
-            "✓ Done"
-          ];
+          return getBaseSteps(personality, "code");
         }
 
-        // AI
+        // ===== AI TOPIC =====
         if (
           text.includes("ai") ||
           text.includes("chatbot") ||
           text.includes("llm")
         ) {
-          return [
-            "✓ Understanding AI topic...",
-            "✓ Reviewing available knowledge...",
-            "✓ Formulating response...",
-            "✓ Done"
-          ];
+          return getBaseSteps(personality, "ai");
         }
 
-        // Jokes
-        if (
-          text.includes("joke") ||
-          text.includes("funny")
-        ) {
-          return [
-            "✓ Understanding request...",
-            "✓ Finding suitable joke...",
-            "✓ Preparing response...",
-            "✓ Done"
-          ];
+        // ===== JOKES =====
+        if (text.includes("joke") || text.includes("funny")) {
+          return getBaseSteps(personality, "joke");
         }
 
-        // Who / What
-        if (
-          text.startsWith("who is") ||
-          text.startsWith("what is")
-        ) {
-          return [
-            "✓ Identifying topic...",
-            "✓ Gathering information...",
-            "✓ Preparing explanation...",
-            "✓ Done"
-          ];
+        // ===== WHO / WHAT =====
+        if (text.startsWith("who is") || text.startsWith("what is")) {
+          return getBaseSteps(personality, "info");
         }
 
-        // Default
+        // ===== DEFAULT (same for ALL modes) =====
         return [
           "✓ Thinking about how to respond...",
-          "✓ Writing Reply...",
+          "✓ Writing response...",
           "✓ Done"
         ];
       };
+
+      const getBaseSteps = (personality, type) => {
+          const base = {
+            greeting: [
+              "✓ Detecting greeting...",
+              "✓ Choosing response...",
+              "✓ Writing reply...",
+              "✓ Done"
+            ],
+
+            code: [
+              "✓ Reading code...",
+              "✓ Looking for issues...",
+              "✓ Generating solution...",
+              "✓ Writing explanation...",
+              "✓ Done"
+            ],
+
+            ai: [
+              "✓ Understanding AI topic...",
+              "✓ Reviewing knowledge...",
+              "✓ Formulating response...",
+              "✓ Done"
+            ],
+
+            joke: [
+              "✓ Understanding request...",
+              "✓ Finding suitable joke...",
+              "✓ Preparing response...",
+              "✓ Done"
+            ],
+
+            info: [
+              "✓ Identifying topic...",
+              "✓ Gathering information...",
+              "✓ Preparing explanation...",
+              "✓ Done"
+            ],
+          };
+
+            const steps = base[type];
+
+            // ONLY personality “flavouring”
+            if (personality === "roast") {
+              return steps.map((s, i) => {
+                if (i === steps.length - 1) return "✓ Done (try not to regret asking this)";
+                if (s.includes("Writing")) return "✓ Writing reply (try not to cringe)";
+                return s;
+              });
+            }
+
+            if (personality === "professional") {
+              return steps;
+            }
+
+            // friendly = unchanged
+            return steps;
+          };
+
+
+      // GET SYSTEM PROMPT
+      const getSystemPrompt = (personality) => {
+        switch (personality) {
+          case "roast":
+            return "You are a witty AI assistant that lightly roasts the user in a playful, non-offensive way. Keep it funny and short.";
+
+          case "professional":
+            return "You are a clear, professional AI assistant. Keep responses structured, helpful, and concise.";
+
+          default:
+            return "You are a friendly, helpful AI assistant. Keep responses natural, warm, and easy to read.";
+        }
+      };
+
 
   // 🤖 AI CHAT (GROQ + web knowledge)
   const getAIResponse = async (chatMessages) => {
@@ -114,11 +158,11 @@ export default function Chat() {
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
           messages: [
-            {
-              role: "system",
-              content:
-                "You are a helpful AI assistant. Use web info when provided and explain things clearly in a natural, friendly way. Respond to questions accordingly and keep things short and relaxed.",
-            },
+            
+             {
+                role: "system",
+                content: getSystemPrompt(personality),
+              },
             {
               role: "system",
               content: `Web context (use if helpful): ${
@@ -179,7 +223,7 @@ export default function Chat() {
           setIsTyping(true);
 
           try {
-            const steps = getThinkingSteps(input);
+            const steps = getThinkingSteps(input, personality);
 
             let currentText = "";
 
@@ -271,21 +315,65 @@ export default function Chat() {
         </div>
 
         <div className="inputBar">
+  
           <input
             value={input}
-            onChange={(e) =>
-              setInput(e.target.value)
-            }
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
             onKeyDown={(e) =>
-              e.key === "Enter" &&
-              sendMessage()
+              e.key === "Enter" && sendMessage()
             }
           />
+
+          {/* Personality dropdown */}
+          <div className="personalityDropdown">
+            <button
+              className="dropbtn"
+              onClick={() => setDropdownOpen((prev) => !prev)}
+              title="Change personality"
+            >
+              ☰
+            </button>
+
+            {dropdownOpen && (
+              <div className="dropdownContent">
+                <button
+                  className={personality === "friendly" ? "active" : ""}
+                  onClick={() => {
+                    setPersonality("friendly");
+                    setDropdownOpen(false);
+                  }}
+                >
+                  Friendly
+                </button>
+
+                <button
+                  className={personality === "roast" ? "active" : ""}
+                  onClick={() => {
+                    setPersonality("roast");
+                    setDropdownOpen(false);
+                  }}
+                >
+                  Roast
+                </button>
+
+                <button
+                  className={personality === "professional" ? "active" : ""}
+                  onClick={() => {
+                    setPersonality("professional");
+                    setDropdownOpen(false);
+                  }}
+                >
+                  Professional
+                </button>
+              </div>
+            )}
+</div>
 
           <button onClick={sendMessage}>
             Send
           </button>
+
         </div>
       </div>
     </div>
