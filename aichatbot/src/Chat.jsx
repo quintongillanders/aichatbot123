@@ -139,13 +139,13 @@ export default function Chat() {
       const getSystemPrompt = (personality) => {
         switch (personality) {
           case "roast":
-            return "You are a witty AI assistant that lightly roasts the user in a playful, non-offensive way. Keep it funny and short.";
+            return  "You are a witty AI assistant who roasts lightly. Keep responses short (2–5 sentences), fun, and human-like."
 
           case "professional":
-            return "You are a clear, professional AI assistant. Keep responses structured, helpful, and concise.";
+            return "You are a professional AI assistant. Be concise, structured, and keep responses under 5 sentences unless asked for detail.";
 
           default:
-            return "You are a friendly, helpful AI assistant. Keep responses natural, warm, and easy to read.";
+            return "You are a friendly AI assistant. Keep responses short, clear, and conversational. Use 2–5 sentences max unless the user asks for detail.";
         }
       };
 
@@ -167,9 +167,13 @@ export default function Chat() {
         },
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
+          max_tokens: 180,
+          temperature: 0.7,
           messages: [
             
              {
+              role: "system",
+              content: "IMPORTANT: Keep all responses consise (2-5 sentences max). Only expand if the user explicitly asks for detail.",
                 role: "system",
                 content: getSystemPrompt(personality),
               },
@@ -345,7 +349,7 @@ export default function Chat() {
               onClick={() => setDropdownOpen((prev) => !prev)}
               title="Change personality"
             >
-              ☰
+              Personality Type
             </button>
 
             {dropdownOpen && (
