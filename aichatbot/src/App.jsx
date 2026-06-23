@@ -8,8 +8,7 @@ import LanguageIcon from "@mui/icons-material/Language";
 function App() {
   return (
     <div className="app">
-      <h1>My first AI Chatbot</h1>
-
+      <h1>QuinC AI</h1>
       <div className="chat-wrapper">
         <Chat />
       </div>
