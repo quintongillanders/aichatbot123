@@ -8,13 +8,13 @@ import LanguageIcon from "@mui/icons-material/Language";
 function App() {
   return (
     <div className="app">
-      <h1>QuinC AI</h1>
+      <h1>PenPals AI</h1>
       <div className="chat-wrapper">
         <Chat />
       </div>
 
       <footer className="footer">
-        <p>Built by Quinton Gillanders</p>
+        <p>Built by Quinton Gillanders - QuinC AI All Rights Reserved 2026 </p>
 
         <div className="socials">
           <a

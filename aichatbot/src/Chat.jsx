@@ -342,6 +342,10 @@ export default function Chat() {
             }
           />
 
+          <button onClick={sendMessage}>
+            Send
+          </button>
+
           {/* Personality dropdown */}
           <div className="personalityDropdown">
             <button
@@ -392,10 +396,6 @@ export default function Chat() {
               </div>
             )}
             </div>
-
-          <button onClick={sendMessage}>
-            Send
-          </button>
 
         </div>
       </div>
