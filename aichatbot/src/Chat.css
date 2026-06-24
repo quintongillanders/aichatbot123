@@ -18,21 +18,14 @@
   height: 720px;
   max-height: 86vh;
 
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%),
-    rgba(10, 12, 18, 0.72);
-
-  backdrop-filter: blur(26px);
-  -webkit-backdrop-filter: blur(26px);
+  background: rgba(10, 12, 18, 0.78);
 
   border-radius: 26px;
 
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.06);
 
   box-shadow:
-    0 0 40px rgba(0,0,0,0.7),
-    0 0 60px rgba(0, 217, 255, 0.08),
-    0 0 80px rgba(255, 79, 216, 0.06);
+    0 10px 40px rgba(0,0,0,0.8);
 
   display: flex;
   flex-direction: column;
@@ -42,19 +35,7 @@
   position: relative;
 }
 
-/* top glow line */
-.chat-box::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
 
-  background: linear-gradient(90deg, transparent, #00d9ff, #ff4fd8, transparent);
-
-  opacity: 0.4;
-}
 
 /* =========================
    MESSAGES

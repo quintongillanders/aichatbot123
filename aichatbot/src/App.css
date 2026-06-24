@@ -8,11 +8,7 @@
   flex-direction: column;
   align-items: center;
 
-  background:
-    radial-gradient(circle at 20% 0%, #1a0b2e 0%, transparent 45%),
-    radial-gradient(circle at 80% 10%, #061a2b 0%, transparent 50%),
-    radial-gradient(circle at bottom, #000000 0%, #05060a 70%),
-    #000000;
+  background: #000; /* 👈 pure black */
 
   position: relative;
   overflow: hidden;
@@ -121,7 +117,7 @@ h1 {
   top: 0;
   z-index: 1000;
 
-  width: 100%;              /* 👈 full screen width */
+  width: 100%;             
   box-sizing: border-box;
 
   display: flex;
@@ -163,7 +159,7 @@ h1 {
 /* login button */
 .login-btn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(5, 5, 5, 0.25);
   color: white;
 
   padding: 6px 14px;
@@ -193,4 +189,54 @@ h1 {
 
 .signup-btn:hover {
   opacity: 0.85;
+}
+
+/* =========================
+   Authentication
+========================= */
+
+.auth-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+.auth-card {
+  width: 320px;
+  padding: 24px;
+
+  background: rgba(10, 12, 18, 0.8);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-card h2 {
+  color: white;
+  margin-bottom: 10px;
+}
+
+.auth-card input {
+  padding: 12px;
+  border-radius: 10px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: white;
+  outline: none;
+}
+
+.auth-card button {
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+
+  background: linear-gradient(135deg, #ff4fd8, #00d9ff);
+  color: white;
+  cursor: pointer;
 }
