@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { auth, db } from "./firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 import Chat from "./Chat";
 import Navbar from "./components/Navbar";
@@ -11,6 +12,15 @@ import "./App.css";
 
 function App() {
   const [user, setUser] = useState(null);
+
+  // 🔥 FIX: keep Firebase auth synced on refresh + login/logout
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <BrowserRouter>
@@ -24,7 +34,8 @@ function App() {
           element={
             <div className="app">
               <div className="chat-wrapper" id="chat">
-                <Chat />
+                
+                <Chat user={user} />
               </div>
 
               <footer className="footer">

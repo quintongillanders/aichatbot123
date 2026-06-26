@@ -1,156 +1,134 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Chat.css";
 
-export default function Chat() {
+export default function Chat({ user }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [thinkingText, setThinkingText] = useState("");
   const [personality, setPersonality] = useState("friendly");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
 
   const addSystemMessage = (text) => {
-  const msg = {
-    id: Date.now(),
-    role: "system",
-    content: text,
+    const msg = {
+      id: Date.now(),
+      role: "system",
+      content: text,
+    };
+
+    setMessages((prev) => [...prev, msg]);
   };
 
-  setMessages((prev) => [...prev, msg]);
-};
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const delay = (ms) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+  const randomDelay = (min, max) =>
+    Math.floor(Math.random() * (max - min + 1)) + min;
 
-      const randomDelay = (min, max) =>
-        Math.floor(Math.random() * (max - min + 1)) + min;
+  const getThinkingSteps = (message, personality) => {
+    const text = message.toLowerCase().trim();
 
-      const getThinkingSteps = (message, personality) => {
-        const text = message.toLowerCase().trim();
+    if (["hi", "hello", "hey", "yo", "sup", "good morning", "good afternoon"].includes(text)) {
+      return getBaseSteps(personality, "greeting");
+    }
 
-        // ===== GREETINGS =====
-        if (
-          ["hi", "hello", "hey", "yo", "sup", "good morning", "good afternoon"].includes(text)
-        ) {
-          return getBaseSteps(personality, "greeting");
-        }
+    if (
+      text.includes("code") ||
+      text.includes("react") ||
+      text.includes("javascript") ||
+      text.includes("html") ||
+      text.includes("css") ||
+      text.includes("bug")
+    ) {
+      return getBaseSteps(personality, "code");
+    }
 
-        // ===== PROGRAMMING =====
-        if (
-          text.includes("code") ||
-          text.includes("react") ||
-          text.includes("javascript") ||
-          text.includes("html") ||
-          text.includes("css") ||
-          text.includes("bug")
-        ) {
-          return getBaseSteps(personality, "code");
-        }
+    if (text.includes("ai") || text.includes("chatbot") || text.includes("llm")) {
+      return getBaseSteps(personality, "ai");
+    }
 
-        // ===== AI TOPIC =====
-        if (
-          text.includes("ai") ||
-          text.includes("chatbot") ||
-          text.includes("llm")
-        ) {
-          return getBaseSteps(personality, "ai");
-        }
+    if (text.includes("joke") || text.includes("funny")) {
+      return getBaseSteps(personality, "joke");
+    }
 
-        // ===== JOKES =====
-        if (text.includes("joke") || text.includes("funny")) {
-          return getBaseSteps(personality, "joke");
-        }
+    if (text.startsWith("who is") || text.startsWith("what is")) {
+      return getBaseSteps(personality, "info");
+    }
 
-        // ===== WHO / WHAT =====
-        if (text.startsWith("who is") || text.startsWith("what is")) {
-          return getBaseSteps(personality, "info");
-        }
+    return [
+      "✓ Thinking about how to respond...",
+      "✓ Writing response...",
+      "✓ Done",
+    ];
+  };
 
-        // ===== DEFAULT (same for ALL modes) =====
-        return [
-          "✓ Thinking about how to respond...",
-          "✓ Writing response...",
-          "✓ Done"
-        ];
-      };
+  const getBaseSteps = (personality, type) => {
+    const base = {
+      greeting: [
+        "✓ Detecting greeting...",
+        "✓ Choosing response...",
+        "✓ Writing reply...",
+        "✓ Done",
+      ],
+      code: [
+        "✓ Reading code...",
+        "✓ Looking for issues...",
+        "✓ Generating solution...",
+        "✓ Writing explanation...",
+        "✓ Done",
+      ],
+      ai: [
+        "✓ Understanding AI topic...",
+        "✓ Reviewing knowledge...",
+        "✓ Formulating response...",
+        "✓ Done",
+      ],
+      joke: [
+        "✓ Understanding request...",
+        "✓ Finding suitable joke...",
+        "✓ Preparing response...",
+        "✓ Done",
+      ],
+      info: [
+        "✓ Identifying topic...",
+        "✓ Gathering information...",
+        "✓ Preparing explanation...",
+        "✓ Done",
+      ],
+    };
 
-      const getBaseSteps = (personality, type) => {
-          const base = {
-            greeting: [
-              "✓ Detecting greeting...",
-              "✓ Choosing response...",
-              "✓ Writing reply...",
-              "✓ Done"
-            ],
+    const steps = base[type];
 
-            code: [
-              "✓ Reading code...",
-              "✓ Looking for issues...",
-              "✓ Generating solution...",
-              "✓ Writing explanation...",
-              "✓ Done"
-            ],
+    if (personality === "roast") {
+      return steps.map((s, i) => {
+        if (i === steps.length - 1)
+          return "✓ Done (try not to regret asking this)";
+        if (s.includes("Writing")) return "✓ Writing reply";
+        return s;
+      });
+    }
 
-            ai: [
-              "✓ Understanding AI topic...",
-              "✓ Reviewing knowledge...",
-              "✓ Formulating response...",
-              "✓ Done"
-            ],
+    return steps;
+  };
 
-            joke: [
-              "✓ Understanding request...",
-              "✓ Finding suitable joke...",
-              "✓ Preparing response...",
-              "✓ Done"
-            ],
+  const getSystemPrompt = (personality) => {
+    switch (personality) {
+      case "roast":
+        return "You are a witty AI assistant who roasts lightly. Keep responses short (2–5 sentences), fun, and human-like.";
 
-            info: [
-              "✓ Identifying topic...",
-              "✓ Gathering information...",
-              "✓ Preparing explanation...",
-              "✓ Done"
-            ],
-          };
+      case "professional":
+        return "You are a professional AI assistant. Be concise, structured, and keep responses under 5 sentences unless asked for detail.";
 
-            const steps = base[type];
+      default:
+        return "You are a friendly AI assistant. Keep responses short, clear, and conversational. Use 2–5 sentences max unless the user asks for detail.";
+    }
+  };
 
-            // ONLY personality “flavouring”
-            if (personality === "roast") {
-              return steps.map((s, i) => {
-                if (i === steps.length - 1) return "✓ Done (try not to regret asking this)";
-                if (s.includes("Writing")) return "✓ Writing reply";
-                return s;
-              });
-            }
-
-            if (personality === "professional") {
-              return steps;
-            }
-
-            // friendly = unchanged
-            return steps;
-          };
-
-
-      // GET SYSTEM PROMPT
-      const getSystemPrompt = (personality) => {
-        switch (personality) {
-          case "roast":
-            return  "You are a witty AI assistant who roasts lightly. Keep responses short (2–5 sentences), fun, and human-like."
-
-          case "professional":
-            return "You are a professional AI assistant. Be concise, structured, and keep responses under 5 sentences unless asked for detail.";
-
-          default:
-            return "You are a friendly AI assistant. Keep responses short, clear, and conversational. Use 2–5 sentences max unless the user asks for detail.";
-        }
-      };
-
-
-  // 🤖 AI CHAT (GROQ + web knowledge)
   const getAIResponse = async (chatMessages) => {
     const lastMessage =
       chatMessages[chatMessages.length - 1]?.content || "";
@@ -170,13 +148,10 @@ export default function Chat() {
           max_tokens: 180,
           temperature: 0.7,
           messages: [
-            
-             {
+            {
               role: "system",
-              content: "IMPORTANT: Keep all responses consise (2-5 sentences max). Only expand if the user explicitly asks for detail.",
-                role: "system",
-                content: getSystemPrompt(personality),
-              },
+              content: getSystemPrompt(personality),
+            },
             {
               role: "system",
               content: `Web context (use if helpful): ${
@@ -194,15 +169,10 @@ export default function Chat() {
 
     const data = await res.json();
 
-    return (
-      data?.choices?.[0]?.message?.content ||
-      "No response"
-    );
+    return data?.choices?.[0]?.message?.content || "No response";
   };
 
-
-  // SEARCH WEB
-    const searchWeb = async (query) => {
+  const searchWeb = async (query) => {
     try {
       const res = await fetch(
         `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`
@@ -210,87 +180,80 @@ export default function Chat() {
 
       const data = await res.json();
 
-      return (
-        data?.AbstractText ||
-        data?.RelatedTopics?.[0]?.Text ||
-        ""
-      );
+      return data?.AbstractText || data?.RelatedTopics?.[0]?.Text || "";
     } catch (err) {
       return "";
     }
   };
 
-  // 💬 SEND MESSAGE
-          const sendMessage = async () => {
-          if (!input.trim()) return;
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
-          const userMessage = {
-            id: Date.now(),
-            role: "user",
-            content: input,
-          };
+    // ✅ FIXED FIREBASE AUTH STATE HANDLING
+    const isAuthLoading = user === undefined;
+    const isLoggedIn = !!user?.uid;
+    const isGuest = !isAuthLoading && !isLoggedIn;
 
-          const updatedMessages = [...messages, userMessage];
+    // 🚫 only apply limit when auth is fully known AND user is guest
+    if (!isAuthLoading && isGuest && messageCount >= 3) {
+      setShowAuthPrompt(true);
+      return;
+    }
 
-          setMessages(updatedMessages);
-          setInput("");
-          setIsTyping(true);
+    const userMessage = {
+      id: Date.now(),
+      role: "user",
+      content: input,
+    };
 
-          try {
-            const steps = getThinkingSteps(input, personality);
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsTyping(true);
 
-            let currentText = "";
+    // only count guest messages AFTER auth is confirmed
+    if (!isAuthLoading && isGuest) {
+      setMessageCount((prev) => prev + 1);
+    }
 
-            for (const step of steps) {
-              currentText +=
-                (currentText ? "\n" : "") + step;
+    try {
+      const steps = getThinkingSteps(input, personality);
 
-              setThinkingText(currentText);
+      let currentText = "";
 
-              await delay(
-                randomDelay(600, 1800)
-              );
-            }
+      for (const step of steps) {
+        currentText += (currentText ? "\n" : "") + step;
+        setThinkingText(currentText);
+        await delay(randomDelay(600, 1800));
+      }
 
-            await delay(
-              randomDelay(500, 1500)
-            );
+      await delay(randomDelay(500, 1500));
 
-            const botReply = await getAIResponse(
-              updatedMessages
-            );
+      const botReply = await getAIResponse([...messages, userMessage]);
 
-            const botMessage = {
-              id: Date.now() + 1,
-              role: "assistant",
-              content: botReply,
-            };
+      const botMessage = {
+        id: Date.now() + 1,
+        role: "assistant",
+        content: botReply,
+      };
 
-            setMessages((prev) => [
-              ...prev,
-              botMessage,
-            ]);
-          } catch (err) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: Date.now() + 1,
-                role: "assistant",
-                content:
-                  "Error connecting to AI 😢",
-              },
-            ]);
-          }
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          content: "Error connecting to AI 😢",
+        },
+      ]);
+    }
 
-          setThinkingText("");
-          setIsTyping(false);
-        };
+    setThinkingText("");
+    setIsTyping(false);
+  };
 
-  // 🔽 AUTO SCROLL
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
   return (
@@ -300,29 +263,21 @@ export default function Chat() {
           {messages.map((msg) => (
             <div
               key={msg.id}
-             className={`message ${
-              msg.role === "user"
-                ? "user"
-                : msg.role === "system"
-                ? "system"
-                : "bot"
-            }`}
+              className={`message ${
+                msg.role === "user"
+                  ? "user"
+                  : msg.role === "system"
+                  ? "system"
+                  : "bot"
+              }`}
             >
-            
-              <div className="bubble">
-                {msg.content}
-              </div>
+              <div className="bubble">{msg.content}</div>
             </div>
           ))}
 
           {isTyping && (
             <div className="message bot">
-              <div
-                className="bubble"
-                style={{
-                  whiteSpace: "pre-line",
-                }}
-              >
+              <div className="bubble" style={{ whiteSpace: "pre-line" }}>
                 {thinkingText}
               </div>
             </div>
@@ -332,26 +287,19 @@ export default function Chat() {
         </div>
 
         <div className="inputBar">
-  
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
-            onKeyDown={(e) =>
-              e.key === "Enter" && sendMessage()
-            }
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
 
-          <button onClick={sendMessage}>
-            Send
-          </button>
+          <button onClick={sendMessage}>Send</button>
 
-          {/* Personality dropdown */}
           <div className="personalityDropdown">
             <button
               className="dropbtn"
               onClick={() => setDropdownOpen((prev) => !prev)}
-              title="Change personality"
             >
               Personality Type
             </button>
@@ -359,46 +307,54 @@ export default function Chat() {
             {dropdownOpen && (
               <div className="dropdownContent">
                 <button
-                  className={personality === "friendly" ? "active" : ""}
                   onClick={() => {
                     setPersonality("friendly");
                     setDropdownOpen(false);
-
-                    addSystemMessage("Switched to Friendly mode!")
+                    addSystemMessage("Switched to Friendly mode!");
                   }}
                 >
                   Friendly
                 </button>
 
                 <button
-                  className={personality === "roast" ? "active" : ""}
                   onClick={() => {
                     setPersonality("roast");
                     setDropdownOpen(false);
-
-                    addSystemMessage("Switched to Roast mode!")
+                    addSystemMessage("Switched to Roast mode!");
                   }}
                 >
                   Roast
                 </button>
 
                 <button
-                  className={personality === "professional" ? "active" : ""}
                   onClick={() => {
                     setPersonality("professional");
                     setDropdownOpen(false);
-
-                    addSystemMessage("Switched to Professional Mode!")
+                    addSystemMessage("Switched to Professional Mode!");
                   }}
                 >
                   Professional
                 </button>
               </div>
             )}
-            </div>
-
+          </div>
         </div>
       </div>
+
+      {showAuthPrompt && (
+        <div className="auth-popup">
+          <div className="auth-box">
+            <h3>Free limit reached</h3>
+            <p>Sign up or log in to continue chatting</p>
+
+            <button onClick={() => navigate("/login")}>Log In</button>
+            <button onClick={() => navigate("/signup")}>Sign Up</button>
+            <button onClick={() => setShowAuthPrompt(false)}>
+              Continue browsing
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
