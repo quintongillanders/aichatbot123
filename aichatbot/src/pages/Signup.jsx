@@ -8,8 +8,14 @@ export default function Signup({ setUser }) {
   const navigate = useNavigate();
 
   const handleSignup = () => {
-    // fake auth for now
+    // fake signup auth
     setUser({ email });
+    navigate("/");
+  };
+
+  const handleGoogleSignup = () => {
+    // placeholder for Google auth (Firebase later)
+    setUser({ email: "googleuser@gmail.com", name: "Google User" });
     navigate("/");
   };
 
@@ -33,8 +39,13 @@ export default function Signup({ setUser }) {
 
         <button onClick={handleSignup}>Create Account</button>
 
+        {/* 👇 Google signup button */}
+        <button className="google-btn" onClick={handleGoogleSignup}>
+          Sign up with Google
+        </button>
+
         <p>
-          Already have an account? <Link to="/login">Login</Link>
+          Already have an account? <Link to="/login">Log in</Link>
         </p>
       </div>
     </div>

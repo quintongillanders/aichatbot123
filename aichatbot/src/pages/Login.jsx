@@ -8,8 +8,13 @@ export default function Login({ setUser }) {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    // fake auth for now
     setUser({ email });
+    navigate("/");
+  };
+
+  const handleGoogleLogin = () => {
+    // placeholder for now (Firebase later)
+    setUser({ email: "googleuser@gmail.com", name: "Google User" });
     navigate("/");
   };
 
@@ -32,6 +37,11 @@ export default function Login({ setUser }) {
         />
 
         <button onClick={handleLogin}>Log In</button>
+
+        {/* 👇 Google login button */}
+        <button className="google-btn" onClick={handleGoogleLogin}>
+          Sign in with Google
+        </button>
 
         <p>
           No account? <Link to="/signup">Sign up</Link>
