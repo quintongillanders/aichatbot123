@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { auth, db } from "./firebase";
 
 import Chat from "./Chat";
 import Navbar from "./components/Navbar";
