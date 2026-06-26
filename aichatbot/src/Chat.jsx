@@ -15,6 +15,17 @@ export default function Chat({ user }) {
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+  if (!user) {
+    setMessages([]);
+    setMessageCount(0);
+    setInput("");
+    setIsTyping(false);
+    setThinkingText("");
+    setShowAuthPrompt(false);
+  }
+}, [user]);
+
   const addSystemMessage = (text) => {
     const msg = {
       id: Date.now(),
