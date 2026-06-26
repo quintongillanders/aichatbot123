@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 export default function Navbar({ user, setUser }) {
   const navigate = useNavigate();
@@ -11,9 +13,14 @@ export default function Navbar({ user, setUser }) {
     navigate("/signup");
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -37,7 +44,7 @@ export default function Navbar({ user, setUser }) {
           </>
         ) : (
           <button className="logout-btn" onClick={handleLogout}>
-            Log Out
+            Logout
           </button>
         )}
       </div>

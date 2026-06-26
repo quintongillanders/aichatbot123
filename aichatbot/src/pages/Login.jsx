@@ -1,21 +1,41 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 
 export default function Login({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    setUser({ email });
-    navigate("/");
-  };
+  const handleLogin = async () => {
+    setLoading(true);
+    setError("");
 
-  const handleGoogleLogin = () => {
-    // placeholder for now (Firebase later)
-    setUser({ email: "googleuser@gmail.com", name: "Google User" });
-    navigate("/");
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      setUser({
+        email: user.email,
+        uid: user.uid
+      });
+
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -27,6 +47,7 @@ export default function Login({ setUser }) {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
         />
 
         <input
@@ -34,13 +55,13 @@ export default function Login({ setUser }) {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
         />
 
-        <button onClick={handleLogin}>Log In</button>
+        {error && <p className="error">{error}</p>}
 
-        {/* 👇 Google login button */}
-        <button className="google-btn" onClick={handleGoogleLogin}>
-          Sign in with Google
+        <button onClick={handleLogin} disabled={loading}>
+          {loading ? "Logging in..." : "Log In"}
         </button>
 
         <p>

@@ -1,22 +1,51 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Signup({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  const handleSignup = () => {
-    // fake signup auth
-    setUser({ email });
-    navigate("/");
-  };
+  const handleSignup = async () => {
+    setLoading(true);
+    setError("");
 
-  const handleGoogleSignup = () => {
-    // placeholder for Google auth (Firebase later)
-    setUser({ email: "googleuser@gmail.com", name: "Google User" });
-    navigate("/");
+    try {
+      // 1. Create auth user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      // 2. Save user to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        createdAt: serverTimestamp()
+      });
+
+      // 3. Set local app user
+      setUser({
+        email: user.email,
+        uid: user.uid
+      });
+
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -28,6 +57,7 @@ export default function Signup({ setUser }) {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
         />
 
         <input
@@ -35,13 +65,13 @@ export default function Signup({ setUser }) {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
         />
 
-        <button onClick={handleSignup}>Create Account</button>
+        {error && <p className="error">{error}</p>}
 
-        {/* 👇 Google signup button */}
-        <button className="google-btn" onClick={handleGoogleSignup}>
-          Sign up with Google
+        <button onClick={handleSignup} disabled={loading}>
+          {loading ? "Creating account..." : "Create Account"}
         </button>
 
         <p>
